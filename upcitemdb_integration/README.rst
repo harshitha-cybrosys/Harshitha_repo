@@ -24,6 +24,7 @@ Credits
 * Developers: (V16) Syamili K,
               (V17) Ayana KP,
               (V18) Harshitha AP,
+              (V19) Harshitha AP,
 Contact: odoo@cybrosys.com
 
 Contacts

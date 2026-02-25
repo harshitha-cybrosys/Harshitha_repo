@@ -21,7 +21,7 @@
 #############################################################################
 {
     'name': 'Products From UPCitemdb',
-    'version': '18.0.1.0.0',
+    'version': '19.0.1.0.0',
     'category': "Productivity,Warehouse",
     'summary': """A module for create new product using UPC.""",
     'description': """This will helps you to create new product 
