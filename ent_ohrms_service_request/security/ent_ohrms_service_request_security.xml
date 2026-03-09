@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--    Service Request Own Document Only Rule:
+            Shows records where the user is either the requester OR the assigned executer -->
+    <record id="request_visibility" model="ir.rule">
+        <field name="name">Request Visibility</field>
+        <field ref="model_service_request" name="model_id"/>
+        <field name="domain_force">
+            ['|', ('employee_id.user_id', '=', user.id),
+                  ('service_executer_id.user_id', '=', user.id)]
+        </field>
+        <field name="groups" eval="[(4, ref('project.group_project_user'))]"/>
+    </record>
+    <!--    Service Request Administrator Rule-->
+    <record id="admin_visibility" model="ir.rule">
+        <field name="name">Administrator Visibility</field>
+        <field ref="model_service_request" name="model_id"/>
+        <field name="domain_force">[]</field>
+        <field name="groups" eval="[(4, ref('hr.group_hr_manager'))]"/>
+    </record>
+    <!--    New User Group for service_execution-->
+    <!--    Note: category_id and users fields were removed from res.groups in Odoo 19. -->
+    <record id="service_group_executer" model="res.groups">
+        <field name="name">Service Executer</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+</odoo>
