@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <!--
+            Flag account.move as an OCR-enabled model so it appears
+            in the Model Configuration dropdown.
+        -->
+        <record id="account.model_account_move" model="ir.model">
+            <field name="is_ocr_tus">True</field>
+        </record>
+    </data>
+</odoo>
