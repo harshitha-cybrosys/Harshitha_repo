@@ -27,10 +27,6 @@ class OdooOcrAiConfigLine(models.Model):
     )
     sequence = fields.Integer(string='Sequence', default=10)
     create_if_not_found = fields.Boolean(string='Create Record if Not Found?')
-    create_products_if_not_found_invisible = fields.Boolean(
-        related='model_id.create_products_if_not_found_invisible',
-        store=False,
-    )
 
     @api.depends('ocr_field_id')
     def _compute_ocr_ir_field_ids_domain(self):
@@ -40,24 +36,25 @@ class OdooOcrAiConfigLine(models.Model):
                     [('model', '=', rec.ocr_field_id.relation)], limit=1)
                 rec.ocr_ir_field_ids_domain = str([
                     ('model_id', '=', related_model.id),
-                    '|',
                     ('ttype', 'in', [
                         'char', 'date', 'integer', 'selection', 'monetary',
                         'float', 'one2many', 'text', 'many2many', 'many2one',
                     ]),
-                    '&',
-                    ('ttype', '=', 'many2one'),
-                    ('relation', '=', 'res.partner'),
                 ])
             else:
                 rec.ocr_ir_field_ids_domain = str([('model_id', '=', False)])
 
     @api.constrains('ocr_field_id', 'ocr_ir_field_ids')
     def _check_relational_child_fields(self):
+        """
+        Child fields are required only for one2many (line items).
+        many2one fields like currency_id or partner_id are matched by a simple
+        string value and do NOT require child fields.
+        """
         for rec in self:
-            if rec.ocr_field_id.ttype in ['many2one', 'one2many'] and not rec.ocr_ir_field_ids:
+            if rec.ocr_field_id.ttype == 'one2many' and not rec.ocr_ir_field_ids:
                 raise ValidationError(_(
-                    'For relational fields, "Related Child Fields" is mandatory. '
+                    'For One2many fields, "Related Child Fields" is mandatory. '
                     'Please update the field mapping for "%s".'
                 ) % rec.title)
 

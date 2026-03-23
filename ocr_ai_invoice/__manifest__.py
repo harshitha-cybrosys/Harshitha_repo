@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Odoo OCR Using AI - Invoices & Bills',
-    'version': '19.0.1.0.0',
+    'name': 'Odoo OCR Using AI - Invoices, Bills, Purchase & Sale Orders',
+    'version': '19.0.2.0.0',
     'summary': """
-        AI-powered OCR for Odoo Invoices & Bills.
-        Upload a PDF or image invoice, let AI extract all fields,
-        and create a draft Customer Invoice or Vendor Bill in one click.
-        Supports multi-layout invoices. Works on Community & Enterprise.
+        AI-powered OCR for Odoo. Upload a PDF or image document, let AI extract
+        all fields, and create a draft Vendor Bill, Customer Invoice, Purchase Order,
+        or Sale Order in one click. Works on Community & Enterprise.
     """,
     'description': """
-        Leverage the power of AI and OCR in Odoo to automate invoice processing.
-        This standalone module (no extra base module required) integrates with
-        the fynix.ai OCR service to extract and digitise invoice data automatically.
+        Integrates with the fynix.ai OCR service to extract and digitise
+        document data automatically. Supports invoices, vendor bills,
+        purchase orders and sale orders.
     """,
     'category': 'Accounting',
     'sequence': 10,
@@ -19,7 +18,7 @@
     'company': 'Cybrosys Techno Solutions',
     'maintainer': 'Cybrosys Techno Solutions',
     'website': 'https://www.cybrosys.com',
-    'depends': ['base', 'account', 'mail'],
+    'depends': ['base', 'account', 'mail', 'purchase', 'sale_management', 'stock'],
     'data': [
         'security/ir.model.access.csv',
         'data/ocr_model_data.xml',
@@ -27,6 +26,8 @@
         'views/odoo_ocr_ai_config_views.xml',
         'views/odoo_ocr_api_config_view.xml',
         'views/account_move_views.xml',
+        'views/purchase_order_views.xml',
+        'views/sale_order_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

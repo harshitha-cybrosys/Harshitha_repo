@@ -1,11 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates xml:space="preserve">
-    <t t-name="ocr_ai_invoice.ListView.Buttons">
+
+    <!-- Invoice / Vendor Bill — only show when move_type is set -->
+    <t t-name="ocr_ai_invoice.ListView.Buttons.Invoice">
         <t t-call="web.ListView.Buttons"/>
-        <t t-if="model.config.context.default_move_type === 'out_invoice' or model.config.context.default_move_type === 'in_invoice'">
-            <button type="button" class="btn btn-primary ms-2" t-on-click="onClickOcrInvoice">
-                Create via OCR
+        <t t-if="model.config.context.default_move_type === 'out_invoice'
+                  or model.config.context.default_move_type === 'in_invoice'">
+            <button type="button" class="btn btn-primary ms-2"
+                    t-on-click="onClickOcrImport">
+                Import via OCR
             </button>
         </t>
     </t>
+
+    <!-- Purchase Orders -->
+    <t t-name="ocr_ai_invoice.ListView.Buttons.Purchase">
+        <t t-call="web.ListView.Buttons"/>
+        <button type="button" class="btn btn-primary ms-2"
+                t-on-click="onClickOcrImport">
+            Import via OCR
+        </button>
+    </t>
+
 </templates>

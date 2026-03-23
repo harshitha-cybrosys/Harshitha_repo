@@ -6,14 +6,15 @@ import tempfile
 import datetime
 import requests
 
-from odoo import api, models, fields, _, http
+from odoo import api, models, fields, _
 from odoo.exceptions import UserError, ValidationError
 
 
 class ImportViaOcr(models.TransientModel):
     """
     Wizard: Upload a PDF/image → call fynix.ai OCR API → preview response →
-    create a draft Invoice or Vendor Bill with all fields pre-filled.
+    create a draft record (Invoice, Vendor Bill, Purchase Order, Sale Order)
+    with all fields pre-filled.
     """
     _name = 'import.via.ocr'
     _description = 'Import Document via OCR AI'
@@ -28,14 +29,14 @@ class ImportViaOcr(models.TransientModel):
     file_previews = fields.Html(string='File Preview')
     status = fields.Boolean(string='API Status')
 
-    # ── Token usage info ─────────────────────────────────────────────────────
+    # ── Token usage info (fynix.ai specific) ─────────────────────────────────
     used_token = fields.Integer(string='Tokens Used (This Request)', readonly=True)
     total_purchase_token = fields.Integer(string='Total Purchased Tokens', readonly=True)
     total_used_token = fields.Integer(string='Total Used Tokens', readonly=True)
     total_available_token = fields.Integer(string='Total Available Tokens', readonly=True)
 
     # ── Linked records ───────────────────────────────────────────────────────
-    chatgpt_config_id = fields.Many2one(
+    ocr_config_id = fields.Many2one(
         comodel_name='odoo.ocr.ai.config',
         string='OCR AI Configuration',
     )
@@ -48,9 +49,8 @@ class ImportViaOcr(models.TransientModel):
     # ── Computed ─────────────────────────────────────────────────────────────
     mime_type = fields.Char(compute='_compute_mime_type', string='MIME Type')
 
-    # Context-carried fields (not shown)
+    # Context-carried fields (not shown in UI)
     move_type = fields.Char()
-    picking_type_code = fields.Char()
 
     # ────────────────────────────────────────────────────────────────────────
     # Constraints & onchange
@@ -91,7 +91,6 @@ class ImportViaOcr(models.TransientModel):
     # Helpers
     # ────────────────────────────────────────────────────────────────────────
     def _get_date_format(self):
-        """Return the date format from user language, falling back to API config."""
         lang = self.env['res.lang'].search([('code', '=', self.env.lang)], limit=1)
         if lang:
             return lang.date_format
@@ -100,7 +99,6 @@ class ImportViaOcr(models.TransientModel):
         return config.date_format if config else '%d-%m-%Y'
 
     def _get_api_credentials(self):
-        """Return (server_url, api_key) from the company OCR config."""
         config = self.env['odoo.ocr.api.config'].search(
             [('company_id', '=', self.env.company.id)], limit=1)
         if not config:
@@ -111,14 +109,17 @@ class ImportViaOcr(models.TransientModel):
             ))
         return config.server_url, config.api_key
 
+    def _get_base_url(self):
+        """
+        Use ir.config_parameter to get the Odoo base URL.
+        http.request is NOT available inside model/wizard methods.
+        """
+        return self.env['ir.config_parameter'].sudo().get_param(
+            'web.base.url', default='http://localhost:8069')
+
     def _build_entities_structure(self, config_lines):
-        """
-        Convert field-mapping lines into the JSON 'entities' dict that
-        the fynix.ai API expects, so it knows what to extract.
-        """
         user_lang = self.env['res.lang'].search(
             [('code', '=', self.env.user.lang)], limit=1)
-
         simple_type_map = {
             'char': 'string',
             'text': 'string',
@@ -128,8 +129,8 @@ class ImportViaOcr(models.TransientModel):
             'date': user_lang.date_format if user_lang else '%d-%m-%Y',
             'datetime': user_lang.date_format if user_lang else '%d-%m-%Y',
             'many2one': 'string',
+            'many2many': 'string',
         }
-
         entities = {}
         for line in config_lines:
             if not line.title or not line.ocr_field_id:
@@ -152,13 +153,11 @@ class ImportViaOcr(models.TransientModel):
     # Step 1 — Send file to OCR API
     # ────────────────────────────────────────────────────────────────────────
     def action_send_to_ocr(self):
-        """Upload the document to fynix.ai and store the JSON response."""
         if not self.file_upload:
             raise UserError(_('Please upload a PDF or image file first.'))
 
-        # Resolve active config
         active_model = self.env.context.get('active_model', 'account.move')
-        config = self.chatgpt_config_id or self.env['odoo.ocr.ai.config'].search([
+        config = self.ocr_config_id or self.env['odoo.ocr.ai.config'].search([
             ('model_id.model', '=', active_model),
             ('active', '=', True),
         ], limit=1)
@@ -167,20 +166,18 @@ class ImportViaOcr(models.TransientModel):
                 'No active OCR AI configuration found for model "%s".\n'
                 'Go to Settings → OCR AI Integration → Model Configuration.'
             ) % active_model)
-        self.chatgpt_config_id = config
+        self.ocr_config_id = config
 
-        # File size guard (≤ 2 MB)
         file_bytes = base64.b64decode(self.file_upload)
         if len(file_bytes) / 1024 / 1024 > 2:
             raise UserError(_('File must be 2 MB or smaller.'))
 
-        # Write to temp file for multipart upload
-        tmp_path = os.path.join(tempfile.gettempdir(), self.file_upload_name or 'ocr_upload')
+        tmp_path = os.path.join(
+            tempfile.gettempdir(), self.file_upload_name or 'ocr_upload')
         with open(tmp_path, 'wb') as fh:
             fh.write(file_bytes)
 
-        # Create (or replace) attachment
-        self.env['ir.attachment'].search([('name', '=', self.file_upload_name)]).unlink()
+        # Create attachment without pre-deleting any existing ones
         attachment = self.env['ir.attachment'].sudo().create({
             'name': self.file_upload_name,
             'mimetype': self.mime_type or 'application/pdf',
@@ -189,22 +186,22 @@ class ImportViaOcr(models.TransientModel):
         })
 
         server_url, auth_token = self._get_api_credentials()
-        entities = self._build_entities_structure(
-            config.model_ids.sorted('sequence'))
+        entities = self._build_entities_structure(config.model_ids.sorted('sequence'))
 
         payload = {
             'entities': json.dumps(entities),
             'auth_token': auth_token,
-            'client_url': http.request.httprequest.host_url,
+            'client_url': self._get_base_url(),
         }
 
         try:
-            response = requests.post(
-                server_url,
-                files={'file': open(tmp_path, 'rb')},
-                data=payload,
-                timeout=60,
-            )
+            with open(tmp_path, 'rb') as fp:
+                response = requests.post(
+                    server_url,
+                    files={'file': fp},
+                    data=payload,
+                    timeout=60,
+                )
             response.raise_for_status()
             res_json = response.json()
         except requests.exceptions.RequestException as exc:
@@ -216,7 +213,6 @@ class ImportViaOcr(models.TransientModel):
         except Exception as exc:
             raise UserError(_('Unexpected error during OCR processing: %s') % str(exc))
 
-        # Store response details
         self.ocr_response_received = True
         self.ocr_attachment_id = attachment.id
         self.status = res_json.get('status', False)
@@ -227,13 +223,11 @@ class ImportViaOcr(models.TransientModel):
         self.total_used_token = usage.get('Total Used Token', 0)
         self.total_available_token = usage.get('Total Available Token', 0)
 
-        # Clean up and store response JSON
         res_json.pop('status', None)
         res_json.pop('status_code', None)
         res_json.get('response', {}).pop('request_usage', None)
         self.response_text = json.dumps(res_json, indent=4)
 
-        # Re-open wizard to show result tabs
         return {
             'type': 'ir.actions.act_window',
             'name': _('Import via OCR'),
@@ -245,16 +239,19 @@ class ImportViaOcr(models.TransientModel):
             'context': {
                 'default_ocr_attachment_id': attachment.id,
                 'default_move_type': self.env.context.get('default_move_type'),
-                'default_picking_type_code': self.env.context.get(
-                    'restricted_picking_type_code'),
             },
         }
 
     # ────────────────────────────────────────────────────────────────────────
-    # Step 2 — Map response → Odoo record values
+    # Step 2 — Map response → create Odoo record directly, then open it
     # ────────────────────────────────────────────────────────────────────────
     def action_create_record(self):
-        """Parse the OCR JSON, map fields, and open the new draft record."""
+        """
+        Parse the OCR JSON, map all fields, and create the record directly
+        via ORM. This is the only reliable way to write one2many lines
+        (invoice_line_ids, order_line) — Odoo ignores one2many fields
+        passed as context 'default_' keys.
+        """
         try:
             response_dict = json.loads(self.response_text or '{}')
         except json.JSONDecodeError as exc:
@@ -264,24 +261,60 @@ class ImportViaOcr(models.TransientModel):
             raise UserError(response_dict.get('message', _('OCR API returned an error.')))
 
         ocr_data = response_dict.get('response', {})
-        config = self.env['odoo.ocr.ai.config'].browse(self.chatgpt_config_id.id)
+        config = self.env['odoo.ocr.ai.config'].browse(self.ocr_config_id.id)
         if not config:
             raise UserError(_('OCR AI configuration not found.'))
 
         date_fmt = self._get_date_format()
-
-        # Base context values always passed to the new record
-        ctx = {
-            'default_ocr_response_text': ocr_data,
-            'default_is_created_ocr': True,
-            'default_ocr_attachment_id': self.ocr_attachment_id.id,
-            'default_company_id': self.env.company.id,
-        }
+        model_name = config.model_id.model
 
         SUPPORTED_TTYPES = [
             'char', 'date', 'datetime', 'integer',
-            'monetary', 'many2one', 'one2many',
+            'monetary', 'many2one', 'one2many', 'float', 'text', 'many2many',
         ]
+
+        vals = {
+            'is_created_ocr': True,
+            'ocr_attachment_id': self.ocr_attachment_id.id,
+            'ocr_response_text': json.dumps(ocr_data),
+        }
+
+        # account.move always needs move_type so Odoo creates the correct journal entry
+        if model_name == 'account.move':
+            move_type = (
+                self.env.context.get('default_move_type')
+                or self.move_type
+                or 'in_invoice'
+            )
+            vals['move_type'] = move_type
+
+        # stock.picking needs picking_type_id to know if it's a Receipt,
+        # Delivery Order, or Internal Transfer.
+        # Priority:
+        #   1. restricted_picking_type_id  — set by Odoo when opening from a
+        #      specific operation type menu (most reliable)
+        #   2. default_picking_type_code   — 'incoming' / 'outgoing' / 'internal'
+        #   3. Fall back to 'incoming' (Receipt) if nothing is in context
+        if model_name == 'stock.picking' and 'picking_type_id' not in vals:
+            ctx = self.env.context
+
+            # Option 1: Odoo may pass the picking type ID directly
+            restricted_pt_id = ctx.get('restricted_picking_type_id')
+            if restricted_pt_id:
+                vals['picking_type_id'] = restricted_pt_id
+            else:
+                # Option 2: resolve from operation code
+                picking_type_code = (
+                    ctx.get('default_picking_type_code')
+                    or ctx.get('restricted_picking_type_code')
+                    or 'incoming'
+                )
+                pt = self.env['stock.picking.type'].sudo().search([
+                    ('code', '=', picking_type_code),
+                    ('company_id', '=', self.env.company.id),
+                ], limit=1)
+                if pt:
+                    vals['picking_type_id'] = pt.id
 
         for line in config.model_ids:
             if not line.title or line.ocr_field_id.ttype not in SUPPORTED_TTYPES:
@@ -291,34 +324,18 @@ class ImportViaOcr(models.TransientModel):
             if isinstance(raw_value, dict) and 'display_name' in raw_value:
                 raw_value = raw_value['display_name']
 
-            value = self._map_field_value(
-                line, raw_value, date_fmt, config)
+            value = self._map_field_value(line, raw_value, date_fmt, config)
 
-            ctx[f'default_{line.ocr_field_id.name}'] = value
+            if value is not False and value is not None:
+                vals[line.ocr_field_id.name] = value
 
-        model_name = config.model_id.model
-
-        # stock.picking needs a picking_type_id
-        if model_name == 'stock.picking':
-            op_code = (self.picking_type_code
-                       or self.env.context.get('restricted_picking_type_code')
-                       or 'outgoing')
-            pt = self.env['stock.picking.type'].search([
-                ('code', '=', op_code),
-                ('company_id', '=', self.env.company.id),
-            ], limit=1)
-            if pt:
-                ctx['default_picking_type_id'] = pt.id
-
-        # account.move needs the move_type (in_invoice / out_invoice)
-        if model_name == 'account.move' and 'default_move_type' in self.env.context:
-            ctx['default_move_type'] = self.env.context['default_move_type']
+        new_record = self.env[model_name].sudo().create(vals)
 
         return {
             'type': 'ir.actions.act_window',
             'res_model': model_name,
             'view_mode': 'form',
-            'context': ctx,
+            'res_id': new_record.id,
             'target': 'current',
         }
 
@@ -326,10 +343,9 @@ class ImportViaOcr(models.TransientModel):
     # Field-value mapping helpers
     # ────────────────────────────────────────────────────────────────────────
     def _map_field_value(self, line, raw_value, date_fmt, config):
-        """Dispatch field mapping by ttype."""
         ttype = line.ocr_field_id.ttype
 
-        if ttype == 'char':
+        if ttype in ('char', 'text'):
             return (raw_value or '').strip()
 
         elif ttype in ('date', 'datetime'):
@@ -340,6 +356,13 @@ class ImportViaOcr(models.TransientModel):
                 return int(raw_value) if str(raw_value).lstrip('-').isdigit() else 0
             except (ValueError, TypeError):
                 return 0
+
+        elif ttype == 'float':
+            try:
+                cleaned = str(raw_value).replace(',', '').strip()
+                return float(cleaned) if cleaned else 0.0
+            except (ValueError, TypeError):
+                return 0.0
 
         elif ttype == 'monetary':
             try:
@@ -354,6 +377,9 @@ class ImportViaOcr(models.TransientModel):
         elif ttype == 'one2many':
             return self._resolve_one2many(line, raw_value, config)
 
+        elif ttype == 'many2many':
+            return self._resolve_many2many(line, raw_value)
+
         return raw_value
 
     def _parse_date(self, value, date_fmt):
@@ -366,38 +392,20 @@ class ImportViaOcr(models.TransientModel):
                 continue
         return False
 
+    # ────────────────────────────────────────────────────────────────────────
+    # Many2one resolver
+    # ────────────────────────────────────────────────────────────────────────
     def _resolve_many2one(self, line, value, config):
-        """Match or create a related record for a many2one field."""
         relation = line.ocr_field_id.relation
 
-        # ── Currency ─────────────────────────────────────────────────────
         if relation == 'res.currency':
             rec = self.env['res.currency'].sudo().search(
                 [('name', '=', value), ('active', '=', True)], limit=1)
             return rec.id if rec else self.env.company.currency_id.id
 
-        # ── Employee ──────────────────────────────────────────────────────
-        if relation == 'hr.employee' and isinstance(value, dict):
-            for domain_field, dict_key in [
-                ('name', 'name'),
-                ('work_email', 'work_email'),
-                ('work_phone', 'work_phone'),
-            ]:
-                v = value.get(dict_key)
-                if v:
-                    rec = self.env['hr.employee'].sudo().search([
-                        (domain_field, '=', v),
-                        ('company_id', 'in', [self.env.company.id, False]),
-                    ], limit=1)
-                    if rec:
-                        return rec.id
-            return False
-
-        # ── Partner ───────────────────────────────────────────────────────
         if relation == 'res.partner' and isinstance(value, dict):
             return self._resolve_partner(value, line, config)
 
-        # ── Generic many2one (search by name) ─────────────────────────────
         if isinstance(value, dict):
             search_name = value.get('name') or value.get('display_name', '')
         else:
@@ -410,7 +418,6 @@ class ImportViaOcr(models.TransientModel):
         return rec.id if rec else False
 
     def _resolve_partner(self, value, line, config):
-        """Fuzzy-match partner by email → phone → name, or create if needed."""
         Partner = self.env['res.partner'].sudo()
         company_domain = ('company_id', 'in', [self.env.company.id, False])
 
@@ -425,7 +432,6 @@ class ImportViaOcr(models.TransientModel):
                 if rec:
                     return rec.id
 
-        # Not found — optionally create
         if not line.create_if_not_found:
             return False
 
@@ -455,11 +461,41 @@ class ImportViaOcr(models.TransientModel):
             'country_id': country_id,
             'state_id': state_id,
         })
-        new_partner = Partner.create(contact_data)
-        return new_partner.id
+        return Partner.create(contact_data).id
 
+    # ────────────────────────────────────────────────────────────────────────
+    # Many2many resolver (top-level fields e.g. taxes on order header)
+    # ────────────────────────────────────────────────────────────────────────
+    def _resolve_many2many(self, line, value):
+        """
+        Supports: a single string, a list of strings, or a list of dicts with 'name'.
+        Returns [(6, 0, [ids])] or False.
+        """
+        relation = line.ocr_field_id.relation
+        if not relation or not value:
+            return False
+
+        if isinstance(value, str):
+            value = [value]
+        elif not isinstance(value, list):
+            return False
+
+        ids = []
+        Model = self.env[relation].sudo()
+        for item in value:
+            name = item.get('name', '') if isinstance(item, dict) else str(item)
+            if not name:
+                continue
+            rec = Model.search([('name', '=', name)], limit=1)
+            if rec:
+                ids.append(rec.id)
+
+        return [(6, 0, ids)] if ids else False
+
+    # ────────────────────────────────────────────────────────────────────────
+    # One2many resolver (invoice lines / order lines)
+    # ────────────────────────────────────────────────────────────────────────
     def _resolve_one2many(self, line, value, config):
-        """Map a list of line-item dicts into Odoo (0, 0, vals) tuples."""
         if not isinstance(value, list):
             return False
 
@@ -470,16 +506,25 @@ class ImportViaOcr(models.TransientModel):
 
         result = []
         for item in value:
-            mapped = {k: v for k, v in item.items() if k in related_fields and v is not None}
+            mapped = {k: v for k, v in item.items()
+                      if k in related_fields and v is not None}
+
+            # display_name is computed and not writable — map to 'name'
+            if 'display_name' in item and item['display_name']:
+                if not mapped.get('name'):
+                    mapped['name'] = item['display_name']
+            mapped.pop('display_name', None)
 
             # ── Product matching ──────────────────────────────────────────
+            product = None
             if 'product_id' in mapped:
                 product = self._find_product(
-                    mapped.get('product_id'),
-                    mapped.get('name') or mapped.get('display_name', ''),
-                    create_products,
-                )
+                    mapped.get('product_id'), mapped.get('name') or '', create_products)
                 mapped['product_id'] = product.id if product else False
+            elif mapped.get('name'):
+                product = self._find_product(None, mapped['name'], create_products)
+                if product:
+                    mapped['product_id'] = product.id
 
             # ── UoM matching ──────────────────────────────────────────────
             if 'product_uom' in mapped:
@@ -487,17 +532,61 @@ class ImportViaOcr(models.TransientModel):
                     [('name', '=', mapped['product_uom'])], limit=1)
                 mapped['product_uom'] = uom.id if uom else False
 
+            # ── Tax matching (many2many inside line items) ─────────────────
+            # Field name differs per model:
+            #   account.move.line   → tax_ids
+            #   purchase.order.line → taxes_id
+            #   sale.order.line     → tax_id
+            for tax_field in ('tax_ids', 'taxes_id', 'tax_id'):
+                if tax_field in mapped and tax_field in related_fields:
+                    tax_ids = self._resolve_taxes(mapped[tax_field], relation)
+                    mapped[tax_field] = [(6, 0, tax_ids)] if tax_ids else False
+                    break
+
             if mapped:
                 result.append((0, 0, mapped))
 
         return result or False
 
+    def _resolve_taxes(self, raw_taxes, line_model):
+        """
+        Resolve tax names or percentage values to account.tax IDs.
+        raw_taxes can be: '15%', 15, [{'name': 'Tax 15%'}], ['15%']
+        """
+        Tax = self.env['account.tax'].sudo()
+        ids = []
+
+        if isinstance(raw_taxes, (str, int, float)):
+            raw_taxes = [raw_taxes]
+        elif not isinstance(raw_taxes, list):
+            return ids
+
+        type_domain = []
+        if 'purchase' in line_model:
+            type_domain = [('type_tax_use', 'in', ['purchase', 'all'])]
+        elif 'sale' in line_model:
+            type_domain = [('type_tax_use', 'in', ['sale', 'all'])]
+
+        for item in raw_taxes:
+            name = item.get('name', '') if isinstance(item, dict) else str(item)
+            if not name:
+                continue
+            tax = Tax.search([('name', '=', name)] + type_domain, limit=1)
+            if not tax:
+                try:
+                    amount = float(str(name).replace('%', '').strip())
+                    tax = Tax.search(
+                        [('amount', '=', amount)] + type_domain, limit=1)
+                except ValueError:
+                    pass
+            if tax:
+                ids.append(tax.id)
+        return ids
+
     def _find_product(self, code_or_name, display_name, create_if_missing):
-        """Search product by internal ref, barcode, or name; optionally create."""
         Product = self.env['product.product'].sudo()
         company_domain = ('company_id', 'in', [self.env.company.id, False])
 
-        # 1. Internal reference
         if code_or_name:
             p = Product.search([
                 ('default_code', '=', code_or_name),
@@ -506,8 +595,6 @@ class ImportViaOcr(models.TransientModel):
             ], limit=1)
             if p:
                 return p
-
-            # 2. Barcode
             p = Product.search([
                 ('barcode', '=', code_or_name),
                 ('barcode', '!=', False),
@@ -516,20 +603,23 @@ class ImportViaOcr(models.TransientModel):
             if p:
                 return p
 
-        # 3. Name
         name = display_name or code_or_name or ''
         if name:
             p = Product.search([('name', '=', name), company_domain], limit=1)
             if p:
                 return p
 
-        # 4. Create
         if create_if_missing and name:
-            return Product.create({
+            product_vals = {
                 'name': name,
-                'is_storable': True,
                 'default_code': code_or_name or False,
                 'company_id': self.env.company.id,
-            })
+            }
+            # is_storable exists in Odoo 17+/19; fall back to detailed_type for older
+            if 'is_storable' in self.env['product.product']._fields:
+                product_vals['is_storable'] = True
+            else:
+                product_vals['detailed_type'] = 'product'
+            return Product.create(product_vals)
 
         return Product.browse()

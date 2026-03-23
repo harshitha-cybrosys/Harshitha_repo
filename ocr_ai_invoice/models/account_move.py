@@ -8,7 +8,7 @@ class OcrAiInvoice(models.Model):
     and the one-click OCR import capability.
     """
     _name = 'account.move'
-    _inherit = ['account.move', 'odoo.ocr.ai.mixing']
+    _inherit = ['account.move', 'odoo.ocr.ai.mixin']
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -23,7 +23,7 @@ class OcrAiInvoice(models.Model):
         return records
 
     @api.model
-    def check_active_boolean_invoice(self, active_model, default_move_type=None, context=None):
+    def check_active_boolean_invoice(self, active_model, default_move_type=None):
         """
         Called by the JS button to check whether an active OCR config
         exists for this model before opening the upload wizard.
@@ -32,9 +32,6 @@ class OcrAiInvoice(models.Model):
         :param default_move_type: e.g. 'in_invoice' or 'out_invoice'
         :return: {'active': True/False, 'record_id': <config id>}
         """
-        if context is None:
-            context = default_move_type
-
         config = self.env['odoo.ocr.ai.config'].search([
             ('active', '=', True),
             ('model_id.model', '=', active_model),

@@ -2,6 +2,7 @@
 <odoo>
     <data>
 
+        <!-- ── Wizard form view ─────────────────────────────────────────────── -->
         <record id="import_via_ocr_wizard_form" model="ir.ui.view">
             <field name="name">import.via.ocr.wizard.form</field>
             <field name="model">import.via.ocr</field>
@@ -9,7 +10,6 @@
                 <form string="Import Document via OCR AI">
                     <sheet>
                         <group>
-                            <!-- File Upload -->
                             <field filename="file_upload_name"
                                    name="file_upload"
                                    string="Upload Document (PDF / PNG / JPG)"
@@ -21,40 +21,35 @@
                             <field name="mime_type" invisible="1"/>
                         </group>
 
-                        <!-- Action buttons -->
                         <div class="o_row mt8">
                             <button name="action_send_to_ocr"
-                                    string="🔍 Send to OCR"
+                                    string="Send to OCR"
                                     type="object"
                                     class="btn btn-primary"
                                     data-hotkey="q"
                                     invisible="not file_upload"/>
                             <button name="action_create_record"
-                                    string="✅ Create Record"
+                                    string="Create Record"
                                     type="object"
                                     class="btn btn-success ms-2"
                                     data-hotkey="w"
                                     invisible="not ocr_response_received or not file_upload or not status"/>
                         </div>
 
-                        <!-- Info banner -->
                         <div class="alert alert-info mt8" role="alert">
-                            <i class="fa fa-info-circle"/> Supported formats: <strong>PDF, PNG, JPG, JPEG</strong> — max <strong>2 MB</strong>.
+                            <i class="fa fa-info-circle"/> Supported formats:
+                            <strong>PDF, PNG, JPG, JPEG</strong> — max <strong>2 MB</strong>.
                         </div>
 
-                        <!-- Tabbed response area (visible after OCR call) -->
                         <notebook invisible="not ocr_response_received">
 
-                            <!-- Raw JSON response -->
-                            <page string="📄 Response Preview"
-                                  invisible="not file_upload">
+                            <page string="Response Preview" invisible="not file_upload">
                                 <field name="response_text"
                                        string="Extracted Data (JSON)"
                                        readonly="1"/>
                             </page>
 
-                            <!-- File preview -->
-                            <page string="🖼 File Preview"
+                            <page string="File Preview"
                                   invisible="not file_upload or not status">
                                 <field name="file_upload"
                                        filename="file_upload_name"
@@ -69,8 +64,7 @@
                                        invisible="mime_type not in ['image/jpeg', 'image/png']"/>
                             </page>
 
-                            <!-- Token usage -->
-                            <page string="🪙 Token Usage"
+                            <page string="Token Usage"
                                   invisible="not file_upload or not status">
                                 <group>
                                     <group string="This Request">
@@ -103,6 +97,18 @@
                     </footer>
                 </form>
             </field>
+        </record>
+
+        <!-- ── Action used by form view stat buttons ─────────────────────────── -->
+        <record id="import_via_ocr_action" model="ir.actions.act_window">
+            <field name="name">Import via OCR</field>
+            <field name="res_model">import.via.ocr</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="context">{
+                'default_move_type': context.get('default_move_type'),
+                'active_model': active_model,
+            }</field>
         </record>
 
     </data>
