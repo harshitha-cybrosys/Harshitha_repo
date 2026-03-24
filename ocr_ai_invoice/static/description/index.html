@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Odoo OCR Using AI - Invoices, Bills, Purchase &amp; Sale Orders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #71639e08; }
+        .cmpad { padding-left: 40px; padding-right: 40px; }
+        @media (max-width: 768px) { .cmpad { padding-left: 16px; padding-right: 16px; } }
+        .mainhead span { color: #71639e; }
+        .nav-pills .nav-link { color: #333; }
+        .nav-pills .nav-link.active { background-color: #71639e; color: #fff; }
+        .accordion-button:not(.collapsed) { background-color: #e3e3f3a9 !important; color: #71639e !important; box-shadow: none; }
+        .accordion-button:focus { box-shadow: none; }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <div class="container-fluid cmpad">
+        <div class="supports my-3 py-3" style="border: 2px solid #e9ecef; padding: 0 35px; border-radius: 10px; background-color: white;">
+            <div class="row justify-content-between align-items-center">
+                <div class="col-lg-3">
+                    <div class="my-3 mx-auto mx-sm-0" style="width: 250px;">
+                        <img src="//apps.odoocdn.com/apps/assets/17.0/theme_boec/images/Cybrosys.png?fcdde35" style="width: 100%;">
+                    </div>
+                </div>
+                <div class="col-lg-9">
+                    <div class="row">
+                        <div class="my-3 d-flex align-items-center justify-content-center justify-content-sm-end flex-wrap gap-2">
+                            <span class="me-2"><b>Supports: </b></span>
+                            <div class="text-center" style="background-color: #017E84 !important; font-size: 0.9rem !important; color: #fff !important; font-weight: 500 !important; padding: 6px 16px !important; border-radius: 50px !important; min-width: 120px !important;">
+                                Community
+                            </div>
+                            <div class="text-center" style="background-color: #71639e !important; font-size: 0.9rem !important; color: #fff !important; font-weight: 500 !important; padding: 6px 16px !important; border-radius: 50px !important; min-width: 120px !important;">
+                                Enterprise
+                            </div>
+                            <div class="text-center" style="background-color: #7C7BAD !important; font-size: 0.9rem !important; color: #fff !important; font-weight: 500 !important; padding: 6px 16px !important; border-radius: 50px !important; min-width: 120px !important;">
+                                Odoo.sh
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HERO -->
+    <div class="container-fluid cmpad text-center py-5">
+        <div class="row">
+            <div class="col-md-12">
+                <h3 class="mainhead" style="font-size: 2.3rem; padding-top: 1rem; font-weight: 700; color: black;">
+                    Odoo OCR Using AI - <span>Invoices, Bills, Purchase &amp; Sale Orders</span></h3>
+                <p class="para mb-4" style="font-size: 20px; color: #6b7280; max-width: 800px; margin: 0 auto 1.5rem;">
+                    Leverage the power of AI-driven OCR to automate your document processing in Odoo.
+                    Upload any invoice, bill, purchase order, or sale order PDF — let AI extract all fields
+                    and automatically create the corresponding draft record in one click.</p>
+                <div class="d-flex justify-content-center gap-1 flex-wrap">
+                    <a href="mailto:odoo@cybrosys.com"
+                        class="d-flex align-items-center gap-2 justify-content-center"
+                        style="position: relative; padding: 15px 25px; border: none; border-radius: 50px; font-size: 16px; font-weight: 600; text-decoration: none; color: white; cursor: pointer; min-width: 200px; background-color: #4facfe;">
+                        <i class="fa fa-envelope" style="font-size: 18px;"></i>
+                        <span style="font-size: 15px; letter-spacing: 0.5px;">odoo@cybrosys.com</span>
+                    </a>
+                    <a href="https://wa.me/919074270811"
+                        class="d-flex align-items-center gap-2 justify-content-center"
+                        style="position: relative; padding: 15px 25px; border: none; border-radius: 50px; font-size: 16px; font-weight: 600; text-decoration: none; color: white; cursor: pointer; min-width: 200px; background-color: #25d366;">
+                        <i class="fab fa-whatsapp" style="font-size: 20px;"></i>
+                        <span style="font-size: 15px; letter-spacing: 0.5px;">+91 9074270811</span>
+                    </a>
+                    <a href="https://www.cybrosys.com" target="_blank"
+                        class="d-flex align-items-center gap-2 justify-content-center"
+                        style="position: relative; padding: 15px 25px; border: none; border-radius: 50px; font-size: 16px; font-weight: 600; text-decoration: none; color: white; cursor: pointer; min-width: 200px; background-color: #71639e;">
+                        <i class="fa fa-globe" style="font-size: 18px;"></i>
+                        <span style="font-size: 15px; letter-spacing: 0.5px;">www.cybrosys.com</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KEY HIGHLIGHTS -->
+    <div class="container-fluid cmpad py-2 py-md-5">
+        <div class="highlights-section">
+            <h2 class="mainhead text-center" style="font-size: 2rem; font-weight: 700; color: black;">Key <span>Highlights</span></h2>
+            <div class="row" style="margin-top: 20px;">
+
+                <div class="col-md-4 mb-4">
+                    <div class="h-100" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-file-invoice" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; margin-bottom: 12px;">Auto Create Vendor Bills</h3>
+                        <p style="font-size: 16px; color: #6b7280; margin-bottom: 0; line-height: 1.6;">
+                            Upload a vendor invoice PDF and the AI automatically extracts all fields and creates a draft Vendor Bill in Odoo — no manual data entry required.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="h-100" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-file-alt" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; margin-bottom: 12px;">Auto Create Customer Invoices</h3>
+                        <p style="font-size: 16px; color: #6b7280; margin-bottom: 0; line-height: 1.6;">
+                            Upload a customer invoice PDF from the Invoices list and let AI extract all details and automatically generate a draft Customer Invoice.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="h-100" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-shopping-cart" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; margin-bottom: 12px;">Auto Create Purchase Orders</h3>
+                        <p style="font-size: 16px; color: #6b7280; margin-bottom: 0; line-height: 1.6;">
+                            Upload a purchase order document and AI will extract vendor, line items, quantities, and prices to create a draft Purchase Order automatically.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="h-100" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-chart-line" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; margin-bottom: 12px;">Auto Create Sale Orders</h3>
+                        <p style="font-size: 16px; color: #6b7280; margin-bottom: 0; line-height: 1.6;">
+                            Upload a sales order document and AI will extract customer, products, quantities, and prices to create a draft Sale Order instantly.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="h-100" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-brain" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; margin-bottom: 12px;">AI-Powered Field Extraction</h3>
+                        <p style="font-size: 16px; color: #6b7280; margin-bottom: 0; line-height: 1.6;">
+                            Powered by fynix.ai OCR technology — extracts vendor/customer name, invoice number, dates, line items, quantities, prices, and taxes with high accuracy.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="h-100" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-sliders-h" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; margin-bottom: 12px;">Dynamic Field Mapping</h3>
+                        <p style="font-size: 16px; color: #6b7280; margin-bottom: 0; line-height: 1.6;">
+                            Fully configurable field mapping — map each AI-extracted field to the exact Odoo field you want. No code changes needed, everything is UI-based.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="h-100" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-search" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; margin-bottom: 12px;">Smart Vendor / Customer Matching</h3>
+                        <p style="font-size: 16px; color: #6b7280; margin-bottom: 0; line-height: 1.6;">
+                            Automatically matches the extracted vendor or customer to existing Odoo partners by email, phone, or name — and optionally creates new ones if not found.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="h-100" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-eye" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; margin-bottom: 12px;">Response Preview &amp; Validation</h3>
+                        <p style="font-size: 16px; color: #6b7280; margin-bottom: 0; line-height: 1.6;">
+                            Review the AI-extracted JSON response before the record is created. File preview and token usage details are also available in the wizard.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="h-100" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-boxes" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; margin-bottom: 12px;">Multi-Layout Document Support</h3>
+                        <p style="font-size: 16px; color: #6b7280; margin-bottom: 0; line-height: 1.6;">
+                            Handles documents from different vendors in different formats and layouts — the AI intelligently adapts to any document structure.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="container-fluid cmpad py-2 py-md-5">
+        <div class="tabs-design1">
+            <ul class="nav nav-pills justify-content-start justify-content-md-center pb-4" style="flex-flow: nowrap; overflow: hidden; overflow-x: auto;" id="pills1" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="screenshot-tab" data-bs-toggle="pill" data-bs-target="#screenshot" type="button" role="tab"
+                       style="width: max-content; border-radius: 50px; margin: 0 5px; padding: 12px 24px; font-weight: 500; border: 2px solid #e9ecef;">
+                        Screenshots
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="features-tab" data-bs-toggle="pill" data-bs-target="#features" type="button" role="tab"
+                       style="width: max-content; border-radius: 50px; margin: 0 5px; padding: 12px 24px; font-weight: 500; border: 2px solid #e9ecef;">
+                        Features
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="faq-tab" data-bs-toggle="pill" data-bs-target="#faq" type="button" role="tab"
+                       style="width: max-content; border-radius: 50px; margin: 0 5px; padding: 12px 24px; font-weight: 500; border: 2px solid #e9ecef;">
+                        Frequent Questions
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="latest-release-tab" data-bs-toggle="pill" data-bs-target="#latest-release" type="button" role="tab"
+                       style="width: max-content; border-radius: 50px; margin: 0 5px; padding: 12px 24px; font-weight: 500; border: 2px solid #e9ecef;">
+                        Latest Release
+                    </a>
+                </li>
+            </ul>
+
+            <div class="tab-content bg-white rounded-4" style="border: 2px solid #e9ecef; border-radius: 10px;" id="pills1Content">
+
+                <!-- SCREENSHOTS TAB -->
+                <div class="tab-pane fade show active" id="screenshot" role="tabpanel">
+                    <div class="p-3 py-md-5">
+
+                        <h2 class="mainhead text-center mb-2" style="font-size: 2rem; font-weight: 700; color: black;"><span>API Configuration</span></h2>
+                        <div class="para" style="max-width: 80%; text-align: center; margin: auto; font-size: 18px; margin-bottom: 2rem; color: #6b7280;">
+                            Navigate to Settings → OCR AI Integration → API Configuration. Add your fynix.ai Authentication Token and set the Server URL to https://ai.fynix.app/tus_ocr_api.
+                        </div>
+                        <div style="border-radius: 10px; overflow: hidden; border: 2px solid #e7e7e7;">
+                            <img src="assets/screenshots/1.png" alt="API Configuration" style="max-width: 100%; height: auto;">
+                        </div>
+
+                        <h2 class="mainhead text-center mb-2 mt-5" style="font-size: 2rem; font-weight: 700; color: black;"><span>Model Configuration</span></h2>
+                        <div class="para" style="max-width: 80%; text-align: center; margin: auto; font-size: 18px; margin-bottom: 2rem; color: #6b7280;">
+                            Navigate to Settings → OCR AI Integration → Model Configuration. Select the model (e.g. Journal Entry) and configure the dynamic field mapping to tell the AI which fields to extract.
+                        </div>
+                        <div style="border-radius: 10px; overflow: hidden; border: 2px solid #e7e7e7;">
+                            <img src="assets/screenshots/2.png" alt="Model Configuration" style="max-width: 100%; height: auto;">
+                        </div>
+
+                        <h2 class="mainhead text-center mb-2 mt-5" style="font-size: 2rem; font-weight: 700; color: black;"><span>Create via OCR Button on Vendor Bills</span></h2>
+                        <div class="para" style="max-width: 80%; text-align: center; margin: auto; font-size: 18px; margin-bottom: 2rem; color: #6b7280;">
+                            The "Import via OCR" button appears on the Vendor Bills list. Click it to open the upload wizard and start the OCR extraction process.
+                        </div>
+                        <div style="border-radius: 10px; overflow: hidden; border: 2px solid #e7e7e7;">
+                            <img src="assets/screenshots/3.png" alt="Vendor Bills OCR Button" style="max-width: 100%; height: auto;">
+                        </div>
+
+                        <h2 class="mainhead text-center mb-2 mt-5" style="font-size: 2rem; font-weight: 700; color: black;"><span>Upload Document Wizard</span></h2>
+                        <div class="para" style="max-width: 80%; text-align: center; margin: auto; font-size: 18px; margin-bottom: 2rem; color: #6b7280;">
+                            The Import via OCR wizard allows you to upload a PDF, PNG, JPG, or JPEG document (max 2 MB). Click "Send to OCR" to process the document with AI.
+                        </div>
+                        <div style="border-radius: 10px; overflow: hidden; border: 2px solid #e7e7e7;">
+                            <img src="assets/screenshots/4.png" alt="Upload Wizard" style="max-width: 100%; height: auto;">
+                        </div>
+
+                        <h2 class="mainhead text-center mb-2 mt-5" style="font-size: 2rem; font-weight: 700; color: black;"><span>AI Response Preview</span></h2>
+                        <div class="para" style="max-width: 80%; text-align: center; margin: auto; font-size: 18px; margin-bottom: 2rem; color: #6b7280;">
+                            After sending to OCR, the Response Preview tab shows the extracted data in JSON format. You can also preview the uploaded file and check the token usage details.
+                        </div>
+                        <div style="border-radius: 10px; overflow: hidden; border: 2px solid #e7e7e7;">
+                            <img src="assets/screenshots/5.png" alt="AI Response Preview" style="max-width: 100%; height: auto;">
+                        </div>
+
+                        <h2 class="mainhead text-center mb-2 mt-5" style="font-size: 2rem; font-weight: 700; color: black;"><span>Auto Created Vendor Bill</span></h2>
+                        <div class="para" style="max-width: 80%; text-align: center; margin: auto; font-size: 18px; margin-bottom: 2rem; color: #6b7280;">
+                            After OCR processing, a draft Vendor Bill is automatically created with all extracted fields pre-filled — vendor, invoice date, due date, reference, line items, quantities, prices and taxes.
+                        </div>
+                        <div style="border-radius: 10px; overflow: hidden; border: 2px solid #e7e7e7;">
+                            <img src="assets/screenshots/6.png" alt="Auto Created Vendor Bill" style="max-width: 100%; height: auto;">
+                        </div>
+                        <h2 class="mainhead text-center mb-2 mt-5" style="font-size: 2rem; font-weight: 700; color: black;"><span>Import via OCR on Purchase Orders</span></h2>
+                        <div class="para" style="max-width: 80%; text-align: center; margin: auto; font-size: 18px; margin-bottom: 2rem; color: #6b7280;">
+                            The OCR button is also available on the Purchase Orders list. Upload a purchase document and AI automatically creates a draft Purchase Order with all fields filled.
+                        </div>
+                        <div style="border-radius: 10px; overflow: hidden; border: 2px solid #e7e7e7;">
+                            <img src="assets/screenshots/7.png" alt="Purchase Orders OCR" style="max-width: 100%; height: auto;">
+                        </div>
+
+                        <h2 class="mainhead text-center mb-2 mt-5" style="font-size: 2rem; font-weight: 700; color: black;"><span>Import via OCR on Sale Orders</span></h2>
+                        <div class="para" style="max-width: 80%; text-align: center; margin: auto; font-size: 18px; margin-bottom: 2rem; color: #6b7280;">
+                            The OCR button also appears on the Sale Orders list. Upload a sales document and AI automatically generates a draft Sale Order with extracted customer and product details.
+                        </div>
+                        <div style="border-radius: 10px; overflow: hidden; border: 2px solid #e7e7e7;">
+                            <img src="assets/screenshots/8.png" alt="Sale Orders OCR" style="max-width: 100%; height: auto;">
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- FEATURES TAB -->
+                <div class="tab-pane fade" id="features" role="tabpanel">
+                    <div class="p-3 py-md-5">
+                        <h2 class="mainhead text-center mb-4" style="font-size: 2rem; font-weight: 700; color: black;">Module <span>Features</span></h2>
+                        <div class="row">
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Available in Odoo 19.0 Community, Enterprise and Odoo.sh
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Upload PDF, PNG, JPG or JPEG documents (max 2 MB)
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> AI-powered field extraction via fynix.ai OCR service
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Auto create Vendor Bills from uploaded invoice PDFs
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Auto create Customer Invoices from uploaded invoice PDFs
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Auto create Purchase Orders from uploaded documents
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Auto create Sale Orders from uploaded documents
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Dynamic field mapping — fully configurable via UI
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Smart partner matching by email, phone, or name
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Optionally auto-create partners/products if not found in Odoo
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Supports multi-layout documents from different vendors
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Response Preview tab — view extracted JSON before record creation
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> File Preview tab — view uploaded document inside Odoo
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Token Usage tab — track API token consumption per request
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> OCR Details tab on every created record for full traceability
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Company-level API configuration — one token per company
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Automatic date format detection — handles multiple date formats
+                            </div>
+                            <div class="col-md-6 mb-3" style="font-size: 16px; color: #6b7280; line-height: 1.8;">
+                                <i class="fa fa-check-circle text-success me-2"></i> Works without Odoo Enterprise — fully compatible with Community edition
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ TAB -->
+                <div class="tab-pane fade" id="faq" role="tabpanel">
+                    <div class="p-3 py-md-5">
+                        <h2 class="mainhead text-center mb-4" style="font-size: 2rem; font-weight: 700; color: black;">Frequently Asked <span>Questions</span></h2>
+                        <div class="accordion accordion-flush" id="accordionFaq">
+
+                            <div class="accordion-item" style="margin-bottom: 1rem; overflow: hidden; background-color: white; border: 2px solid #e2e8f0 !important; border-radius: 10px !important;">
+                                <h2 class="accordion-header" style="border-radius: 10px;">
+                                    <a class="accordion-button collapsed" type="button" style="box-shadow: unset; border: none !important; padding: 1.5rem 2rem !important; font-weight: 600 !important; font-size: 1.1rem; color: #71639e !important; background-color: #e3e3f3a9 !important; border-radius: 10px !important;" data-bs-toggle="collapse" data-bs-target="#faqOne" aria-expanded="false">
+                                        What does this module do?
+                                    </a>
+                                </h2>
+                                <div id="faqOne" class="accordion-collapse collapse" data-bs-parent="#accordionFaq" style="border-top: 1px solid #e2e8f0;">
+                                    <div class="accordion-body" style="background-color: rgba(99,102,241,0.02); line-height: 1.6; font-size: 1rem; padding: 2rem !important;">
+                                        This module integrates AI-powered OCR into Odoo so you can upload any vendor invoice, customer invoice, purchase order, or sale order PDF/image. The AI automatically extracts all key fields and creates the corresponding draft record in Odoo — eliminating manual data entry completely.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item" style="margin-bottom: 1rem; overflow: hidden; background-color: white; border: 2px solid #e2e8f0 !important; border-radius: 10px !important;">
+                                <h2 class="accordion-header" style="border-radius: 10px;">
+                                    <a class="accordion-button collapsed" type="button" style="box-shadow: unset; border: none !important; padding: 1.5rem 2rem !important; font-weight: 600 !important; font-size: 1.1rem; color: #71639e !important; background-color: #e3e3f3a9 !important; border-radius: 10px !important;" data-bs-toggle="collapse" data-bs-target="#faqTwo" aria-expanded="false">
+                                        How do I get the fynix.ai API token?
+                                    </a>
+                                </h2>
+                                <div id="faqTwo" class="accordion-collapse collapse" data-bs-parent="#accordionFaq" style="border-top: 1px solid #e2e8f0;">
+                                    <div class="accordion-body" style="background-color: rgba(99,102,241,0.02); line-height: 1.6; font-size: 1rem; padding: 2rem !important;">
+                                        Register a free account at https://ai.fynix.app. After login, go to the OCR Dashboard and copy your Authentication Token. Purchase OCR tokens from https://ai.fynix.app/shop (2 Million tokens for $20). Then paste the token in Odoo under Settings → OCR AI Integration → API Configuration.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item" style="margin-bottom: 1rem; overflow: hidden; background-color: white; border: 2px solid #e2e8f0 !important; border-radius: 10px !important;">
+                                <h2 class="accordion-header" style="border-radius: 10px;">
+                                    <a class="accordion-button collapsed" type="button" style="box-shadow: unset; border: none !important; padding: 1.5rem 2rem !important; font-weight: 600 !important; font-size: 1.1rem; color: #71639e !important; background-color: #e3e3f3a9 !important; border-radius: 10px !important;" data-bs-toggle="collapse" data-bs-target="#faqThree" aria-expanded="false">
+                                        What file formats are supported?
+                                    </a>
+                                </h2>
+                                <div id="faqThree" class="accordion-collapse collapse" data-bs-parent="#accordionFaq" style="border-top: 1px solid #e2e8f0;">
+                                    <div class="accordion-body" style="background-color: rgba(99,102,241,0.02); line-height: 1.6; font-size: 1rem; padding: 2rem !important;">
+                                        The module supports PDF, PNG, JPG, and JPEG formats. The maximum file size is 2 MB per document. For best results, use clear, high-resolution scans or digital PDFs.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item" style="margin-bottom: 1rem; overflow: hidden; background-color: white; border: 2px solid #e2e8f0 !important; border-radius: 10px !important;">
+                                <h2 class="accordion-header" style="border-radius: 10px;">
+                                    <a class="accordion-button collapsed" type="button" style="box-shadow: unset; border: none !important; padding: 1.5rem 2rem !important; font-weight: 600 !important; font-size: 1.1rem; color: #71639e !important; background-color: #e3e3f3a9 !important; border-radius: 10px !important;" data-bs-toggle="collapse" data-bs-target="#faqFour" aria-expanded="false">
+                                        How does the field mapping work?
+                                    </a>
+                                </h2>
+                                <div id="faqFour" class="accordion-collapse collapse" data-bs-parent="#accordionFaq" style="border-top: 1px solid #e2e8f0;">
+                                    <div class="accordion-body" style="background-color: rgba(99,102,241,0.02); line-height: 1.6; font-size: 1rem; padding: 2rem !important;">
+                                        Go to Settings → OCR AI Integration → Model Configuration. Select the model (e.g. Journal Entry for invoices/bills), then add field mapping rows. Each row maps an "AI Field Title" (what the AI will extract) to an Odoo field. For relational fields like invoice lines, you also specify the child fields (e.g. label, price_unit, quantity). No coding is required.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item" style="margin-bottom: 1rem; overflow: hidden; background-color: white; border: 2px solid #e2e8f0 !important; border-radius: 10px !important;">
+                                <h2 class="accordion-header" style="border-radius: 10px;">
+                                    <a class="accordion-button collapsed" type="button" style="box-shadow: unset; border: none !important; padding: 1.5rem 2rem !important; font-weight: 600 !important; font-size: 1.1rem; color: #71639e !important; background-color: #e3e3f3a9 !important; border-radius: 10px !important;" data-bs-toggle="collapse" data-bs-target="#faqFive" aria-expanded="false">
+                                        Does it work on Odoo Community?
+                                    </a>
+                                </h2>
+                                <div id="faqFive" class="accordion-collapse collapse" data-bs-parent="#accordionFaq" style="border-top: 1px solid #e2e8f0;">
+                                    <div class="accordion-body" style="background-color: rgba(99,102,241,0.02); line-height: 1.6; font-size: 1rem; padding: 2rem !important;">
+                                        Yes! This module works on both Odoo 19.0 Community and Enterprise editions, as well as Odoo.sh. Unlike Odoo's built-in document digitization which is Enterprise-only, this module brings AI OCR to Community users as well.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item" style="margin-bottom: 1rem; overflow: hidden; background-color: white; border: 2px solid #e2e8f0 !important; border-radius: 10px !important;">
+                                <h2 class="accordion-header" style="border-radius: 10px;">
+                                    <a class="accordion-button collapsed" type="button" style="box-shadow: unset; border: none !important; padding: 1.5rem 2rem !important; font-weight: 600 !important; font-size: 1.1rem; color: #71639e !important; background-color: #e3e3f3a9 !important; border-radius: 10px !important;" data-bs-toggle="collapse" data-bs-target="#faqSix" aria-expanded="false">
+                                        How many tokens does each document scan use?
+                                    </a>
+                                </h2>
+                                <div id="faqSix" class="accordion-collapse collapse" data-bs-parent="#accordionFaq" style="border-top: 1px solid #e2e8f0;">
+                                    <div class="accordion-body" style="background-color: rgba(99,102,241,0.02); line-height: 1.6; font-size: 1rem; padding: 2rem !important;">
+                                        Token consumption depends on the document complexity. A typical invoice scan uses approximately 500–2000 tokens. With 2 Million tokens ($20), you can process approximately 1000–4000 invoices. You can track exact token usage per request in the Token Usage tab of the wizard.
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LATEST RELEASE TAB -->
+                <div class="tab-pane fade" id="latest-release" role="tabpanel">
+                    <div class="p-3 py-md-5">
+                        <h2 class="mainhead text-center mb-4" style="font-size: 2rem; font-weight: 700; color: black;">Latest <span>Releases</span></h2>
+                        <div class="row">
+                            <div class="col-md-4 mb-4">
+                                <div class="h-100" style="position: relative; padding: 30px; border: 2px solid #71639e24; border-radius: 15px;">
+                                    <div class="d-flex align-items-center flex-wrap gap-3" style="margin-bottom: 0.75rem;">
+                                        <div style="font-size: 1.25rem; font-weight: 700; color: #1a202c;">Version 19.0.1.0.0</div>
+                                        <div style="padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; background-color: #9ae6b4; color: #2d7d32; border: 2px solid #68d391;">Add</div>
+                                        <div style="color: #64748b; font-size: 0.875rem; font-weight: 500;">
+                                            <i class="fa fa-calendar me-1"></i> 24th March, 2026
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="p-3" style="display: flex; align-items: center; background-color: #f5f5f5e7; border-radius: 10px;">
+                                            <div style="color: #6b7280; line-height: 1.6; font-size: 0.95rem;">Initial commit — Odoo OCR Using AI - Invoices, Bills, Purchase & Sale Orders and fynix.ai integration.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- OUR SERVICES -->
+    <div class="container-fluid cmpad py-2 py-md-5">
+        <div class="highlights-section">
+            <h2 class="mainhead text-center" style="font-size: 2rem; font-weight: 700; color: black;">Our <span>Services</span></h2>
+            <div class="row" style="margin-top: 20px;">
+
+                <div class="col-md-3 mb-4">
+                    <div class="h-100 d-flex flex-column justify-content-center align-items-center text-center" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-cogs" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; letter-spacing: -0.025em;">Odoo Customization</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="h-100 d-flex flex-column justify-content-center align-items-center text-center" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-wrench" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; letter-spacing: -0.025em;">Odoo Implementation</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="h-100 d-flex flex-column justify-content-center align-items-center text-center" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-life-ring" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; letter-spacing: -0.025em;">Odoo Support</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="h-100 d-flex flex-column justify-content-center align-items-center text-center" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-sync-alt" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; letter-spacing: -0.025em;">Odoo Migration</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="h-100 d-flex flex-column justify-content-center align-items-center text-center" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-puzzle-piece" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; letter-spacing: -0.025em;">Odoo Integration</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="h-100 d-flex flex-column justify-content-center align-items-center text-center" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-comments" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; letter-spacing: -0.025em;">Odoo Consultancy</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="h-100 d-flex flex-column justify-content-center align-items-center text-center" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-id-card" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; letter-spacing: -0.025em;">Odoo Licensing</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="h-100 d-flex flex-column justify-content-center align-items-center text-center" style="background-color: #8d76d51f; border-radius: 10px; padding: 32px; border: 2px solid #71639e1a;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 24px; background-color: #71639e;">
+                            <i class="fa fa-user-tie" style="color: #fff; font-size: 24px;"></i>
+                        </div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: black; letter-spacing: -0.025em;">Hire Odoo Developer</h3>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

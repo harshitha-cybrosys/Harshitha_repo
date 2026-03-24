@@ -88,3 +88,10 @@ registry.category("views").add("ocr_button_sale", {
     Controller: OcrListController,
     buttonTemplate: "ocr_ai_invoice.ListView.Buttons.Sale",
 });
+
+// ── Stock Picking list view (Receipts, Deliveries, Internal Transfers) ────────
+registry.category("views").add("ocr_button_stock", {
+    ...listView,
+    Controller: OcrListController,
+    buttonTemplate: "ocr_ai_invoice.ListView.Buttons.Stock",
+});

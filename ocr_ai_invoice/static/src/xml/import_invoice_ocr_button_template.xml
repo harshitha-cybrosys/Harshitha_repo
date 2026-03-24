@@ -22,4 +22,22 @@
         </button>
     </t>
 
+    <!-- Sale Orders -->
+    <t t-name="ocr_ai_invoice.ListView.Buttons.Sale">
+        <t t-call="web.ListView.Buttons"/>
+        <button type="button" class="btn btn-primary ms-2"
+                t-on-click="onClickOcrImport">
+            Import via OCR
+        </button>
+    </t>
+
+    <!-- Stock Pickings (Receipts, Deliveries, Internal Transfers) -->
+    <t t-name="ocr_ai_invoice.ListView.Buttons.Stock">
+        <t t-call="web.ListView.Buttons"/>
+        <button type="button" class="btn btn-primary ms-2"
+                t-on-click="onClickOcrImport">
+            Import via OCR
+        </button>
+    </t>
+
 </templates>

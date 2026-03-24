@@ -13,5 +13,9 @@
         <record id="sale.model_sale_order" model="ir.model">
             <field name="is_ocr_tus">True</field>
         </record>
+        <!-- Flag stock.picking as OCR-enabled -->
+        <record id="stock.model_stock_picking" model="ir.model">
+            <field name="is_ocr_tus">True</field>
+        </record>
     </data>
 </odoo>

@@ -15,12 +15,6 @@
         </record>
 
         <!-- ── Inject JS class into the Vendor Bills list view ─────────────── -->
-        <!--
-            NOTE: In Odoo 19, vendor bills may share view_invoice_tree with a domain
-            filter instead of a separate view. If this raises a missing external ID
-            error on install, remove this block — the customer invoices view above
-            already registers the ocr_button_invoice js_class.
-        -->
         <record id="view_in_invoice_tree_inherit_ocr" model="ir.ui.view">
             <field name="name">account.move.vendor.bill.list.ocr.inherit</field>
             <field name="model">account.move</field>
